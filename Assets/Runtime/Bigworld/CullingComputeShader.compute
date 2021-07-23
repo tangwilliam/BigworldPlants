@@ -1,0 +1,50 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSCulling
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+struct GPUItemStruct
+{
+	float3 Position;
+	float4x4 Matrix;
+};
+
+//StructuredBuffer<float3> posAllBuffer;
+StructuredBuffer<GPUItemStruct> posAllBuffer;
+//RWStructuredBuffer<float3> posVisibleBuffer;
+RWStructuredBuffer<GPUItemStruct> posVisibleBuffer;
+RWStructuredBuffer<int> bufferWithArgs;
+float3 cmrPos;
+float3 cmrDir;
+float cmrHalfFov;
+float4x4 matrix_VP;
+int countPerDimention;
+
+
+[numthreads(8, 8, 1)]
+void CSCulling(uint3 id : SV_DispatchThreadID)
+{
+	// 计算范围必须限制，否则数据稍多一点，显示结果就会闪烁。
+	// 原因：每一维上线程组里线程是8个，而 countPerDimention并非一定是8的倍数，如果不进行限制，每一维度最后的一个线程组中多余的几个线程也在计算，posAllBuffer[index] 中index可能超出数组长度。于是给最终结果里添加一些随机错误值。也可能导致GPU中出错而出现大范围闪烁现象。
+	if (id.y >= countPerDimention || id.x >= countPerDimention) return; 
+
+	uint index = id.y * countPerDimention + id.x;
+
+	//float3 itemPos = posAllBuffer[index];
+	float3 itemPos = posAllBuffer[index].Position;
+	float3 itemDir = normalize(itemPos - cmrPos);
+	float rot = dot(cmrDir, itemDir);
+
+	float4 clipPos = mul(matrix_VP, float4(itemPos, 1));
+	//float4 clipPos = mul(matrix_VP, float4(itemPos - cmrDir * 0.2, 1)); // https://zhuanlan.zhihu.com/p/278793984 认为这样可以把草考虑成半径0.2的球体
+
+	if (max(abs(clipPos.x), abs(clipPos.y)) > clipPos.w + 0.7)return; // 考虑草本身有大小，需要稍微外扩，故加了个0.7经验值。也是来源于上述知乎帖的经验值。而自己测试这个值适用于我们的草
+
+	//posVisibleBuffer[index] = itemPos; // 这是在CPU直接用 instanceCount指定需要绘制的个数时，用的方式。
+
+	int currentIndex;
+	InterlockedAdd(bufferWithArgs[1], 1, currentIndex); // 将需要绘制的个数加一，从而得到最终需要绘制的个数。上述知乎帖说实测这个比专门为此功能设计的ComputeBufferType.Append性能还好
+	//posVisibleBuffer[currentIndex] = itemPos;
+	posVisibleBuffer[currentIndex] = posAllBuffer[index];
+}
