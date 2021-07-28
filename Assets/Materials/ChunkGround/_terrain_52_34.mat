@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Grass
-  m_Shader: {fileID: 4800000, guid: 57625ea731c4fc248b3a8c6c7fc8c58a, type: 3}
-  m_ShaderKeywords: _WAVEEFFECT_ON
+  m_Name: _terrain_52_34
+  m_Shader: {fileID: 4800000, guid: 03e4c0b5a982696429b0837b4ce80894, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -19,12 +19,12 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 25aac0d4dbe613941845dfcb439506d3, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ControlMap:
+        m_Texture: {fileID: 2800000, guid: 8a9fd8734c2985548b1b78877e25e573, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -40,10 +40,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _LightMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -63,6 +59,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Splat1:
+        m_Texture: {fileID: 2800000, guid: b3cba0bf37f3d2e479e660058274abb5, type: 3}
+        m_Scale: {x: 32, y: 32}
+        m_Offset: {x: 0, y: 0}
+    - _Splat2:
+        m_Texture: {fileID: 2800000, guid: fa0deeb3611dfee4195097b061f0694e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat3:
+        m_Texture: {fileID: 2800000, guid: 1028b63f2c2427441a07920a711e323e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat4:
+        m_Texture: {fileID: 2800000, guid: e76d805cb9a8faf4aa419c283784473b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -72,26 +84,15 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
-    - _MinLightness: 0.2
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PhaseScale: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
-    - _UseLightmapIntensity: 0
-    - _WaveEffect: 1
-    - _WaveSpeed: 1
-    - _WindDirection: 0
-    - _WindStrength: 1
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.43876824, g: 0.6415094, b: 0.43877268, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _IndexForBasemap: {r: 6528, g: 4096, b: 128, a: 128}
-    - _IndexForLightmap: {r: 0, g: 0, b: 128, a: 128}
-    - _LightMapUV: {r: 0, g: 0, b: 0, a: 0}
-    - _VertUVForLightmap: {r: 0, g: 1, b: 0, a: 1}
   m_BuildTextureStacks: []

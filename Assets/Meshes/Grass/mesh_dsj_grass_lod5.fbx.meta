@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 34fbc06ab71bb2649998d897846a7af3
+guid: 451da5ca8ec6b0a42a2b1baf0d7ccc7f
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
@@ -7,7 +7,9 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: mesh_dsj_grass_lod2
+    4300000: mesh_dsj_grass_lod4
+    4300002: mesh_dsj_grass_lod5
+    4300004: mesh_dsj_grass_lod05
   externalObjects: {}
   materials:
     importMaterials: 0

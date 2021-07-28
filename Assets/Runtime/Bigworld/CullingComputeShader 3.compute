@@ -1,5 +1,5 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSCulling0
+#pragma kernel CSCulling3
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -24,7 +24,7 @@ int countPerDimention;
 
 
 [numthreads(8, 8, 1)]
-void CSCulling0(uint3 id : SV_DispatchThreadID)
+void CSCulling3(uint3 id : SV_DispatchThreadID)
 {
 	// 计算范围必须限制，否则数据稍多一点，显示结果就会闪烁。
 	// 原因：每一维上线程组里线程是8个，而 countPerDimention并非一定是8的倍数，如果不进行限制，每一维度最后的一个线程组中多余的几个线程也在计算，posAllBuffer[index] 中index可能超出数组长度。于是给最终结果里添加一些随机错误值。也可能导致GPU中出错而出现大范围闪烁现象。
