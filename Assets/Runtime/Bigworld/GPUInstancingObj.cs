@@ -8,6 +8,8 @@ namespace Will
 
     public class GPUInstancingObj
     {
+        private static int s_BaseMapId = Shader.PropertyToID("_BaseMap");
+        private static int s_BaseMapIndexId = Shader.PropertyToID("_IndexForBasemap");
 
         private Mesh m_Mesh;
         private Material m_DrawMat;
@@ -17,7 +19,6 @@ namespace Will
         private ComputeBuffer m_BufferWithArgs;
         private ComputeBuffer m_PosBuffer;
         private ComputeBuffer m_PosVisibleBuffer;
-        private ComputeBuffer m_VisibleCountBuffer;
         private uint[] m_Args = new uint[5] { 0, 0, 0, 0, 0 }; // The GPU buffer containing the arguments for how many instances of this mesh to draw.
         private int m_CSCullingID;
         private Bounds m_Bounds = new Bounds(Vector3.zero, Vector3.one * 100000);
@@ -60,7 +61,6 @@ namespace Will
             m_PosBuffer = new ComputeBuffer(instanceCount, gpuItemStride); // float3 + float4x4。 StructuredBuffer的存储非常紧凑。
             m_PosBuffer.SetData(positions);
 
-            m_PosVisibleBuffer = new ComputeBuffer(instanceCount, gpuItemStride);
 
             /* 实测：一个ComputeShader 的 Kernel 对应的ComputeBuffer，如果该Kernel在一帧里被Dispatch()多次，那么ComputeBuffer只能得到最后一次执行的值。
              * 
@@ -68,13 +68,12 @@ namespace Will
              1. DrawMeshInstancedIndirect()并非立即执行，而是在一个队列里，一帧中某个时间被Unity安排执行，DrawIndirect之间的顺序会保证，但是想要依次: Kernel->DrawIndirect->Kernel->DrawIndirect 不行。
              2. ComputeBuffer 在每次在Dispatch() Kernel执行后都会被改掉， 即便已经通过MaterialPropertyBlock设置给DrawMeshInstancedIndirect()，还是会改，说明mpb只存一个指针。
             */
-            m_CSCullingID = m_ComputeShader.FindKernel("CSCulling" + csIndex.ToString());
+            m_CSCullingID = m_ComputeShader.FindKernel("CSCulling_" + csIndex.ToString());
             //m_ComputeShader.SetBuffer(m_CSCullingID, "bufferWithArgs", m_BufferWithArgs); // 如果用InterlockedAdd 的方式，需要这个
             m_ComputeShader.SetBuffer(m_CSCullingID, "posAllBuffer", m_PosBuffer);
-            m_ComputeShader.SetBuffer(m_CSCullingID, "posVisibleBuffer", m_PosVisibleBuffer);
 
-            m_VisibleCountBuffer = new ComputeBuffer(instanceCount, gpuItemStride, ComputeBufferType.Append);
-            m_ComputeShader.SetBuffer(m_CSCullingID, "visibleCountBuffer", m_VisibleCountBuffer);
+            m_PosVisibleBuffer = new ComputeBuffer(instanceCount, gpuItemStride, ComputeBufferType.Append);
+            m_ComputeShader.SetBuffer(m_CSCullingID, "posVisibleBuffer", m_PosVisibleBuffer);
 
             m_MaterialPropertyblock = new MaterialPropertyBlock();
 
@@ -85,7 +84,6 @@ namespace Will
             ReleaseComputeBuffer(m_BufferWithArgs);
             ReleaseComputeBuffer(m_PosBuffer);
             ReleaseComputeBuffer(m_PosVisibleBuffer);
-            ReleaseComputeBuffer(m_VisibleCountBuffer);
         }
 
         private void ReleaseComputeBuffer( ComputeBuffer computeBuffer)
@@ -101,11 +99,14 @@ namespace Will
             DoCulling();
 
             //m_BufferWithArgs.GetData(m_Args);
-            //Debug.Log("draw m_VisibleCountBuffer.count = " + m_VisibleCountBuffer.count + " args : " + m_Args[1]); // 检查剔除的情况
+            //Debug.Log("draw m_PosVisibleBuffer.count = " + m_PosVisibleBuffer.count + " args : " + m_Args[1]); // 检查剔除的情况
 
             m_MaterialPropertyblock.Clear();
-            m_MaterialPropertyblock.SetBuffer("posVisibleBuffer", m_VisibleCountBuffer);
+            m_MaterialPropertyblock.SetBuffer("posVisibleBuffer", m_PosVisibleBuffer);
             //m_DrawMat.SetBuffer("posVisibleBuffer", m_VisibleCountBuffer); // 建议用 MaterialProertyBlock。因为DrawIndirect()并非立即执行，而是有队列，Material.SetBuffer()会被后续的SetBuffer()改掉。
+
+            m_MaterialPropertyblock.SetTexture( s_BaseMapId, m_BaseMap);
+            m_MaterialPropertyblock.SetVector(s_BaseMapIndexId, m_IndexForBaseMap);
 
             Graphics.DrawMeshInstancedIndirect(m_Mesh, m_SubMeshIndex, m_DrawMat, m_Bounds, m_BufferWithArgs, 0, m_MaterialPropertyblock, ShadowCastingMode.Off, false);
 
@@ -116,7 +117,7 @@ namespace Will
         {
             //m_Args[1] = 0; // Compute Shader 中用InterlockedAdd() 进行自增得到实际要绘制的个数。
             //m_BufferWithArgs.SetData(m_Args);
-            m_VisibleCountBuffer.SetCounterValue(0);
+            m_PosVisibleBuffer.SetCounterValue(0);
 
             m_ComputeShader.SetVector("cmrPos", Camera.main.transform.position);
             m_ComputeShader.SetVector("cmrDir", Camera.main.transform.forward);
@@ -130,7 +131,7 @@ namespace Will
             int dispatchCountPerDimention = Mathf.CeilToInt( m_CountsSqrted / threadsPerDimentionPerGroup);
             m_ComputeShader.Dispatch(m_CSCullingID, dispatchCountPerDimention, dispatchCountPerDimention, 1);
 
-            ComputeBuffer.CopyCount(m_VisibleCountBuffer, m_BufferWithArgs, 4); // copys to args[1]
+            ComputeBuffer.CopyCount(m_PosVisibleBuffer, m_BufferWithArgs, 4); // copys to args[1]
             //m_Args[1] = (uint)m_VisibleCountBuffer.count; // 存在多个DrawMeshInstancedIndirect()时，这样做得到的m_Args[1]并不准确。症状是有些草没剔除掉。
             //m_BufferWithArgs.SetData(m_Args);
         }

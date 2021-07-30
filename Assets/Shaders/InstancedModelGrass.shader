@@ -168,7 +168,8 @@ Shader "Will/InstancedModelGrass"
 				
 				finalRGB = ( _LightColor0.rgb * NdotL + unity_AmbientSky.rgb ) * albedo.rgb; // 这个计算与地表一致，才能保证与地表融合
                 
-                // finalRGB += (i.uv0.y * i.uv0.y * i.uv0.y * 0.3); // 让草顶端有个高光效果
+				half highlight = max(0, i.uv0.y - 0.5);
+                finalRGB += ( highlight *highlight *highlight * 2.0); // 让草顶端有个高光效果
                               
                 return half4(finalRGB, 1);
             }

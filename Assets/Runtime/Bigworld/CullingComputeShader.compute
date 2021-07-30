@@ -1,5 +1,8 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSCulling0
+#pragma kernel CSCulling_0
+#pragma kernel CSCulling_1
+#pragma kernel CSCulling_2
+#pragma kernel CSCulling_3
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
@@ -10,12 +13,9 @@ struct GPUItemStruct
 	float4x4 Matrix;
 };
 
-//StructuredBuffer<float3> posAllBuffer;
 StructuredBuffer<GPUItemStruct> posAllBuffer;
-//RWStructuredBuffer<float3> posVisibleBuffer;
-RWStructuredBuffer<GPUItemStruct> posVisibleBuffer;
 RWStructuredBuffer<int> bufferWithArgs;
-AppendStructuredBuffer<GPUItemStruct> visibleCountBuffer;
+AppendStructuredBuffer<GPUItemStruct> posVisibleBuffer;
 float3 cmrPos;
 float3 cmrDir;
 float cmrHalfFov;
@@ -23,12 +23,11 @@ float4x4 matrix_VP;
 int countPerDimention;
 
 
-[numthreads(8, 8, 1)]
-void CSCulling0(uint3 id : SV_DispatchThreadID)
-{
+void cull(uint3 id) {
+
 	// 计算范围必须限制，否则数据稍多一点，显示结果就会闪烁。
 	// 原因：每一维上线程组里线程是8个，而 countPerDimention并非一定是8的倍数，如果不进行限制，每一维度最后的一个线程组中多余的几个线程也在计算，posAllBuffer[index] 中index可能超出数组长度。于是给最终结果里添加一些随机错误值。也可能导致GPU中出错而出现大范围闪烁现象。
-	if (id.y >= countPerDimention || id.x >= countPerDimention) return; 
+	if (id.y >= countPerDimention || id.x >= countPerDimention) return;
 
 	uint index = id.y * countPerDimention + id.x;
 
@@ -46,5 +45,31 @@ void CSCulling0(uint3 id : SV_DispatchThreadID)
 	//int currentIndex;
 	//InterlockedAdd(bufferWithArgs[1], 1, currentIndex); // 将需要绘制的个数加一，从而得到最终需要绘制的个数。上述知乎帖说实测这个比专门为此功能设计的ComputeBufferType.Append性能还好
 	//posVisibleBuffer[currentIndex] = posAllBuffer[index];
-	visibleCountBuffer.Append(posAllBuffer[index]);
+	posVisibleBuffer.Append(posAllBuffer[index]);
+}
+
+[numthreads(8, 8, 1)]
+void CSCulling_0(uint3 id : SV_DispatchThreadID)
+{
+	cull(id);
+
+}
+
+
+[numthreads(8, 8, 1)]
+void CSCulling_1(uint3 id : SV_DispatchThreadID)
+{
+	cull(id);
+}
+
+[numthreads(8, 8, 1)]
+void CSCulling_2(uint3 id : SV_DispatchThreadID)
+{
+	cull(id);
+}
+
+[numthreads(8, 8, 1)]
+void CSCulling_3(uint3 id : SV_DispatchThreadID)
+{
+	cull(id);
 }
